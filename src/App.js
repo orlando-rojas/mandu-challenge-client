@@ -1,9 +1,10 @@
 import React from "react";
+import DivisionsTable from "./components/table/DivisionsTable";
 
 export default function App() {
   return (
     <div>
-      <h1>Hello</h1>
+      <DivisionsTable />
     </div>
   );
 }
