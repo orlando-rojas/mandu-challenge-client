@@ -3,3 +3,12 @@
   padding: 0;
   box-sizing: border-box;
 }
+
+body {
+  background-color: #f9f9f9 !important;
+}
+
+.ant-pagination-total-text {
+  position: absolute;
+  left: 0;
+}
