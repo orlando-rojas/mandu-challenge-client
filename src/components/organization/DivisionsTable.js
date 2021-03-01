@@ -1,19 +1,17 @@
 import { Input, Table, Radio, Select } from "antd";
 import React from "react";
 import axios from "axios";
+import "./table.less";
 
 export default function DivisionsTable() {
   const { useState, useEffect } = React;
   const [isLoading, setIsLoading] = useState(false);
   const [divisionsList, setDivisionsList] = useState([]);
   const [pagination, setPagination] = useState({});
-  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [filterTable, setFilterTable] = useState(null);
+  const [filteredColumn, setFilteredColumn] = useState("name");
 
-  const handleSelectChange = (selectedRowKeys) => {
-    console.log("selectedRowKeys changed: ", selectedRowKeys);
-    setSelectedRowKeys(selectedRowKeys);
-  };
+  const { Option } = Select;
 
   function showTotal(total) {
     return `Total colaboradores: ${total}`;
@@ -37,7 +35,7 @@ export default function DivisionsTable() {
 
   useEffect(() => {
     fetchDivisions();
-  }, []);
+  }, []); // eslint-disable-line
 
   const getFilters = (property) => {
     let parents = [...new Set(divisionsList.map((div) => div[property]))];
@@ -97,13 +95,9 @@ export default function DivisionsTable() {
       onFilter: (value, record) => record.sub_divisions === value,
       sorter: (a, b) => a.level - b.level,
       render: (row) => (
-        <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
-          <span style={{ textDecoration: "underline" }}>{row}</span>
-          <img
-            src="/images/add-green.svg"
-            alt=""
-            style={{ marginLeft: 30, height: 14, width: 14 }}
-          />
+        <div className="subdivision-row">
+          <span>{row}</span>
+          <img src="/images/add-green.svg" alt="" />
         </div>
       ),
     },
@@ -115,40 +109,51 @@ export default function DivisionsTable() {
     },
   ];
 
-  const rowSelection = {
-    onChange: handleSelectChange,
-  };
-
   const handleTableChange = (pagination) => {
     setPagination(pagination);
   };
 
   const handleSearch = (value) => {
-    const filteredTable = divisionsList.filter((o) =>
-      o.name.toLowerCase().includes(value.toLowerCase())
+    if (value === "") {
+      setFilterTable(null);
+      return;
+    }
+    const filteredTable = divisionsList.filter((div) =>
+      div[filteredColumn]
+        ?.toString()
+        ?.toLowerCase()
+        ?.includes(value.toLowerCase())
     );
 
     setFilterTable(filteredTable);
   };
 
+  const handleColumnSelect = (e) => setFilteredColumn(e);
+
   return (
-    <div style={{ padding: "20px 32px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
+    <div className="table-wrapper">
+      <div className="main">
         <Radio.Group style={{ marginBottom: 30 }} defaultValue="listado">
           <Radio.Button value="listado">Listado</Radio.Button>
           <Radio.Button value="arbol">Arbol</Radio.Button>
         </Radio.Group>
-        <div style={{ display: "flex", alignItems: "center" }}>
+        <div className="filter-div">
           <Select
             defaultValue="Columnas"
             style={{ marginRight: 10, width: "100%" }}
-          ></Select>
+            onChange={handleColumnSelect}
+          >
+            <Option value="name">Nombre</Option>
+            <Option value="parent_division">División superior</Option>
+            <Option value="collaborators_amount">Colaboradores</Option>
+            <Option value="level">Nivel</Option>
+            <Option value="sub_divisions">Subdivisiones</Option>
+            <Option value="ambassador">Embajadores</Option>
+          </Select>
           <Input.Search onSearch={handleSearch} placeholder="Buscar" />
         </div>
       </div>
-
       <Table
-        rowSelection={rowSelection}
         columns={tableColumns}
         dataSource={!filterTable ? divisionsList : filterTable}
         loading={isLoading}
@@ -156,6 +161,7 @@ export default function DivisionsTable() {
         pagination={pagination}
         rowKey="name"
         bordered
+        rowSelection
       />
     </div>
   );
